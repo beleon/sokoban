@@ -1,6 +1,6 @@
 # Sokoban
 
-An implementation of the classic Sokoban game in Haskell. To fully functioning
+An implementation of the classic Sokoban game in Haskell. The fully functioning
 prototype including one hardcoded map and a very simple terminal UI was build
 over the course of two train rides.
 
@@ -23,13 +23,15 @@ first map.
 
 # Textual Representation
 
-| Wall           | `#` |
-| Player         | `@` |
-| Player on goal | `+` |
-| Box            | `$` |
-| Box on goal    | `*` |
-| Goal           | `.` |
-| Floor          | ` ` |
+| Type           | Char |
+|----------------|------|
+| Wall           | `#`  |
+| Player         | `@`  |
+| Player on goal | `+`  |
+| Box            | `$`  |
+| Box on goal    | `*`  |
+| Goal           | `.`  |
+| Floor          | ` `  |
 
 # Rules
 
