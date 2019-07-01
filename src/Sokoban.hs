@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
-module Game where
+module Sokoban where
 
 import qualified Data.Map.Strict as M
 import Data.Map.Strict (Map)
@@ -11,7 +11,7 @@ import Control.Arrow ((&&&))
 
 type EntityMap = Map Location Entity
 
-data Game = Game
+data Sokoban = Sokoban
     { _moveCount :: Integer
     , _board     :: Board
     } deriving Show
@@ -20,7 +20,7 @@ data MoveResult = MoveResult
     { _updateList :: [Location]
     , _sucess     :: Bool
     , _won        :: Bool
-    , _game'      :: Game
+    , _sokoban'      :: Sokoban
     } deriving Show
 
 data Entity = Box | Wall deriving (Show, Eq)
@@ -64,7 +64,7 @@ exampleBoard = "    #####\n\
                \    #      ###  ######\n\
                \    ########"
 
-makeLenses ''Game
+makeLenses ''Sokoban
 makeLenses ''MoveResult
 makeLenses ''Entity
 makeLenses ''Location
@@ -134,9 +134,9 @@ hasWon b =
         e = b ^. obstacles
     in all (Just Box==) $ map (e M.!?) t
 
-advance :: Game -> Direction -> MoveResult
-advance g d =
-    let b        = g ^. board
+advance :: Sokoban -> Direction -> MoveResult
+advance s d =
+    let b        = s ^. board
         p        = b ^. player
         l        = p ^. location
         l'       = move l d
@@ -155,24 +155,24 @@ advance g d =
                      NoMove     -> (,) b' []
                      BoxMove    -> (,) b''' [l, l', l'']
                      NormalMove -> (,) b'' [l, l']
-        s        = mt /= NoMove
-        g'       = board .~ nb $ moveCount %~ inc $ g
+        st       = mt /= NoMove
+        s'       = board .~ nb $ moveCount %~ inc $ s
         w        = hasWon nb
-    in MoveResult ul s w g'
+    in MoveResult ul st w s'
 
-playGame :: [Direction] -> Game -> [MoveResult]
-playGame es g =
-    let b = g ^. board
+playGame :: [Direction] -> Sokoban -> [MoveResult]
+playGame es s =
+    let b = s ^. board
         w = hasWon b
-    in if w then [] else takeUntil (^. won) $ playGame' es g
+    in if w then [] else takeUntil (^. won) $ playGame' es s
 
-playGame' :: [Direction] -> Game -> [MoveResult]
+playGame' :: [Direction] -> Sokoban -> [MoveResult]
 playGame' []     _ = []
-playGame' (e:es) g = let mr = advance g e in mr:playGame' es (mr ^. game')
+playGame' (e:es) s = let mr = advance s e in mr:playGame' es (mr ^. sokoban')
 
-printGame :: Game -> String
-printGame g =
-    let b       = g ^. board
+printGame :: Sokoban -> String
+printGame s =
+    let b       = s ^. board
         e       = b ^. obstacles
         t       = b ^. targets
         l       = M.keys e ++ t
@@ -208,6 +208,6 @@ takeUntil f (a:as) = if f a then [a] else a:takeUntil f as
 
 playOnTerminal :: String -> String
 playOnTerminal inp =
-    let initG = Game 0 $ loadBoard exampleBoard
-        res   = map (^. game') $ playGame (map parseDirection $ lines inp) initG
-    in printGame initG ++ (concat $ map printGame res)
+    let initS = Sokoban 0 $ loadBoard exampleBoard
+        res   = map (^. sokoban') $ playGame (map parseDirection $ lines inp) initS
+    in printGame initS ++ (concat $ map printGame res)
