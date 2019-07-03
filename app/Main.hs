@@ -1,6 +1,6 @@
 module Main where
 
-import Game
+import Sokoban
 
 main :: IO ()
 main = interact playOnTerminal
