@@ -1,0 +1,17 @@
+textures:
+  - ["dungeon_tileset.png", "dungeon_tileset", "ff00ff"]
+  - [           "dino.png",            "dino", "ff00ff"]
+stills:
+  - "top_walls.yaml"
+  - "bottom_walls.yaml"
+  - "left_walls.yaml"
+  - "right_walls.yaml"
+  - "floor_tiles.yaml"
+  - "top_left_walls.yaml"
+  - "top_right_walls.yaml"
+  - "bottom_left_walls.yaml"
+  - "bottom_right_walls.yaml"
+  - "dark_floor_tiles.yaml"
+  - "boxes.yaml"
+  - "targets.yaml"
+animations: []

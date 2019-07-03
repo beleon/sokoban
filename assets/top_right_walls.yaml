@@ -1,0 +1,5 @@
+texture: "dungeon_tileset"
+name: "top_right_walls"
+size: [16, 16]
+instances:
+  - [80,  0]

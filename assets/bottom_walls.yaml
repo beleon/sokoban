@@ -1,0 +1,10 @@
+texture: "dungeon_tileset"
+name: "bottom_walls"
+size: [16, 16]
+instances:
+  - [16,  64]
+  - [32,  64]
+  - [48,  64]
+  - [64,  64]
+  - [16,  80]
+  - [32,  80]

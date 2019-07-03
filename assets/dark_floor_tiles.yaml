@@ -1,0 +1,5 @@
+texture: "dungeon_tileset"
+name: "dark_floor_tiles"
+size: [16, 16]
+instances:
+  - [128, 112]

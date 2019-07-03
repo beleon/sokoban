@@ -26,6 +26,12 @@ library:
   dependencies:
   - lens
   - containers
+  - sdl2
+  - sdl2-image
+  - mtl
+  - yaml
+  - unordered-containers
+  - text
 
 executables:
   sokoban:

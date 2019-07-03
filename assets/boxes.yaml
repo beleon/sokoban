@@ -1,0 +1,5 @@
+texture: "dungeon_tileset"
+name: "boxes"
+size: [16, 16]
+instances:
+  - [16, 128]
