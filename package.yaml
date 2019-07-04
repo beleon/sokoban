@@ -30,6 +30,7 @@ library:
   - sdl2-image
   - mtl
   - yaml
+  - aeson
   - unordered-containers
   - text
 

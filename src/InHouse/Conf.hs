@@ -2,14 +2,16 @@ module InHouse.Conf where
 
 import Data.HashMap.Strict as HM
 import Data.Yaml
+import Data.Aeson
 import Data.Text (pack)
 
--- Ugly hack to parse yaml conf to avoid intermediate data structures. Will probably replace when I find a more suitable config package that is maintained.
-
+-- Hack to avoid intermediate data structures when working with yaml configs.
 type Conf = Value
 
 readConf :: FilePath -> IO Conf
 readConf = fmap (either (error . show) id) . decodeFileEither
 
 getConf :: (FromJSON a) => String -> Conf -> a
-getConf k (Object x) = either (error . show) id $ decodeEither' $ encode $ HM.lookup (pack k) x
+getConf k (Object x) = case fromJSON $ x HM.! (pack k) of
+                         (Error s)   -> error s
+                         (Success a) -> a
