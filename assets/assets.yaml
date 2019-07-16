@@ -1,6 +1,6 @@
 textures:
   - ["dungeon_tileset.png", "dungeon_tileset", "ff00ff"]
-  - [           "dino.png",            "dino", "ff00ff"]
+  - ["Char_idle_right.png", "char_idle_right", "ff00ff"]
 stills:
   - "top_walls.yaml"
   - "bottom_walls.yaml"
@@ -14,4 +14,5 @@ stills:
   - "dark_floor_tiles.yaml"
   - "boxes.yaml"
   - "targets.yaml"
-animations: []
+animations:
+  - "char_idle_right.yaml"

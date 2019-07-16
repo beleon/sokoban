@@ -39,7 +39,7 @@ data Sprite =
 data AnimationInfo = AnimationInfo
   { aiId             :: AssetId
   , aiIsPlaying      :: Bool
-  , aiLastUpdated    :: Integer
+  , aiLastUpdated    :: Int
   , aiAliveTicks     :: Int
   }
 
