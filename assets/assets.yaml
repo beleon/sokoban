@@ -1,6 +1,6 @@
 textures:
   - ["dungeon_tileset.png", "dungeon_tileset", "ff00ff"]
-  - ["Char_idle_right.png", "char_idle_right", "ff00ff"]
+  - ["char.png", "char", "ff00ff"]
 stills:
   - "top_walls.yaml"
   - "bottom_walls.yaml"
@@ -16,3 +16,14 @@ stills:
   - "targets.yaml"
 animations:
   - "char_idle_right.yaml"
+  - "char_idle_left.yaml"
+  - "char_idle_up.yaml"
+  - "char_idle_down.yaml"
+  - "char_walk_right.yaml"
+  - "char_walk_left.yaml"
+  - "char_walk_up.yaml"
+  - "char_walk_down.yaml"
+  - "char_attack_right.yaml"
+  - "char_attack_left.yaml"
+  - "char_attack_up.yaml"
+  - "char_attack_down.yaml"
