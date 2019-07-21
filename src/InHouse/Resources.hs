@@ -18,20 +18,18 @@ assetDir = "assets"
 
 type AssetId = String
 
--- Rect x y x_width y_width
-data Rectangle = Rect Int Int Int Int
-
 data Sprite =
     Still
       { tId        :: AssetId
       , tTextureId :: AssetId
       , tSize      :: (Int, Int)
-      , tInstances :: [(Int, Int)]
+      , tInstances :: [((Int, Int), Maybe (Int, Int))]
       }
   | Animation
       { aId            :: AssetId
       , aTextureId     :: AssetId
       , aSize          :: (Int, Int)
+      , tOff           :: Maybe (Int, Int)
       , aFrames        :: [((Int, Int), Int)]
       , aTotalDuration :: Int                 -- after how many ticks will the animation start over
       }
@@ -85,7 +83,7 @@ createSpritesFromConf conf = do
           stills
   foldlM
     (\m n -> do
-      a@(Animation id _ _ _ _) <- createAnimation n
+      a@(Animation id _ _ _ _ _) <- createAnimation n
       return $ M.insert id a m)
     m0
     animations
@@ -93,28 +91,32 @@ createSpritesFromConf conf = do
 createStill :: String -> IO Sprite
 createStill name = do
   conf <- readConf $ getAssetPath name
-  let textureId = fromJust $ getConf "texture" conf
-      name      = fromJust $ getConf "name" conf
-      size      = fromJust $ getConf "size" conf
-      instances = fromJust $ getConf "instances" conf
+  let textureId = getConf "texture" conf
+      name      = getConf "name" conf
+      size      = getConf "size" conf
+      instances = map (\x -> case x of
+                               [a, b] -> ((a, b), Nothing)
+                               [a, b, c, d] -> ((a, b), Just (c, d))
+                               _ -> error "Wrong number of instance arguments") $ fromJust $ getConf "instances" conf
   return $ Still name textureId size instances
 
 createAnimation :: String -> IO Sprite
 createAnimation name = do
   conf <- readConf $ getAssetPath name
-  let textureId = fromJust $ getConf "texture" conf
-      name      = fromJust $ getConf "name" conf
-      size      = fromJust $ getConf "size" conf
-      frames    = fromJust $ getConf "frames" conf
-  return $ Animation name textureId size frames (sum $ map snd frames)
+  let textureId = getConf "texture" conf
+      name      = getConf "name" conf
+      size      = getConf "size" conf
+      frames    = getConf "frames" conf
+      off       = tryGetConf "offset" conf
+  return $ Animation name textureId size off frames (sum $ map snd frames)
 
-drawSprite :: (MonadIO m) => SDL.Renderer -> Resources -> AssetId -> Rectangle -> m ()
-drawSprite renderer resources name rect =
-  let (Still _ textureId (w, h) ((x, y):_)) = fromJust $ M.lookup name (rSprites resources)
-      texture = fromJust $ M.lookup textureId (rTextures resources)
-      from = Just $ toSDLRectangle $ Rect x y w h
-      to   = Just $ toSDLRectangle rect
-  in SDL.copy renderer texture from to
+--drawSprite :: (MonadIO m) => SDL.Renderer -> Resources -> AssetId -> Rectangle -> m ()
+--drawSprite renderer resources name rect =
+--  let (Still _ textureId (w, h) (((x, y), _):_)) = fromJust $ M.lookup name (rSprites resources)
+--      texture = fromJust $ M.lookup textureId (rTextures resources)
+--      from = Just $ toSDLRectangle $ Rect x y w h
+--      to   = Just $ toSDLRectangle rect
+--  in SDL.copy renderer texture from to
 
 toSDLRectangle :: (Num a) => Rectangle -> SDL.Rectangle a
 toSDLRectangle (Rect x y w h) = SDL.Rectangle (SDL.P $ SDL.V2 (fromIntegral x) (fromIntegral y)) (SDL.V2 (fromIntegral w) (fromIntegral h))

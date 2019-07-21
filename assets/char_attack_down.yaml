@@ -1,6 +1,7 @@
 texture: "char"
 name: "char_attack_down"
 size: [23, 23]
+offset: [0, 7]
 frames:
   - [[   0, 0], 150]
   - [[  23, 0], 150]

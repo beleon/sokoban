@@ -1,6 +1,7 @@
 module Main where
 
-import Sokoban
+import InHouse.Engine
+import InHouseSokoban
 
 main :: IO ()
-main = interact playOnTerminal
+main = playUsingSdl $ inHouseSokoban

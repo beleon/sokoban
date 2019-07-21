@@ -1,6 +1,7 @@
 texture: "char"
 name: "char_attack_left"
 size: [16, 21]
+offset: [3, 0]
 frames:
   - [[  0, 23], 150]
   - [[ 16, 23], 150]

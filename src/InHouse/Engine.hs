@@ -34,7 +34,7 @@ frameDuration = 1000 `div` fromIntegral fps
 playUsingSdl :: InHouseSokoban -> IO ()
 playUsingSdl a = do
   SDL.initialize [SDL.InitVideo]
-  window <- SDL.createWindow "Sokoban" SDL.defaultWindow { SDL.windowInitialSize = SDL.V2 1280 720, SDL.windowHighDPI = True, SDL.windowResizable = True}
+  window <- SDL.createWindow "Sokoban" SDL.defaultWindow { SDL.windowInitialSize = SDL.V2 1440 720, SDL.windowHighDPI = True, SDL.windowResizable = True}
   renderer <- SDL.createRenderer window (-1) SDL.defaultRenderer
   resources <- loadResources renderer
   let cfg = Config

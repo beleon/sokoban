@@ -13,6 +13,7 @@ stills:
   - "bottom_right_walls.yaml"
   - "dark_floor_tiles.yaml"
   - "boxes.yaml"
+  - "boxes_on_target.yaml"
   - "targets.yaml"
 animations:
   - "char_idle_right.yaml"
