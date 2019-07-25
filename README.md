@@ -7,7 +7,7 @@ awesome SDL2 Haskell bindings.
 
 # Acknowledgements
 
-The free pixel art used for the game comes these from awesome artists:
+The free pixel art used for the game comes from these awesome artists:
 - [Pixel_Poem](https://twitter.com/pixel_poem):
   [2D Pixel Dungeon](https://pixel-poem.itch.io/dungeon-assetpuck)
 - [Vryell](https://twitter.com/Vryell):
@@ -45,7 +45,7 @@ Clone the project, change into the root directory of the project and use
 stack build && stack exec sokoban
 ```
 
-to first build and the run Sokoban.
+to first build and then run Sokoban.
 
 # How to play
 
@@ -54,4 +54,4 @@ finishing a level.
 
 # Rules
 
-Push all boxes on top of goals. Pulling box is not possible.
+Push all boxes on top of goals. Pulling boxes is not possible.
