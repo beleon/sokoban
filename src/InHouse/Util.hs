@@ -46,3 +46,11 @@ dim (Rect _ _ w h) = V2 w h
 
 loc :: Rectangle -> V2
 loc (Rect x y _ _) = V2 x y
+
+split :: (Eq a) => a -> [a] -> [[a]]
+split _ [] = []
+split s l  =
+  let (a, b) = span (/=s) l
+  in case b of
+       []     -> [a]
+       (x:xs) -> a:split s xs

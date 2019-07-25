@@ -13,11 +13,13 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 import qualified Data.Map.Strict as M
 import Data.Map.Strict (Map)
-import Data.List (sortBy)
+import Data.List (sortBy, intercalate)
 
 data InHouseSokoban = InHouseSokoban
   { sokoban :: Sokoban
   , animationInfo :: [AnimationInfo]
+  , maps :: [String]
+  , currentMap :: Int
   }
 
 data Placements = Placements
@@ -57,11 +59,15 @@ instance Game InHouseSokoban where
         keyevents = mapMaybe (\x -> case x of {(SDL.KeyboardEvent a) -> Just a; _ -> Nothing}) events
         [ai] = animationInfo game
         nd = nextDir events
-        ng = maybe (sokoban game) ((^. sokoban') . advance (sokoban game)) nd
+        moveResult = fmap (advance (sokoban game)) nd
+        w  = maybe False (^. won) moveResult
+        ni = if w then currentMap game + 1 else currentMap game
+        ng = if w then Sokoban 0 (loadBoard (maps game!!ni)) else maybe (sokoban game) (^. sokoban') moveResult
     now <- fmap fromIntegral SDL.ticks
     let newAlive = aiAliveTicks ai + now - aiLastUpdated ai
     return $ Update quit (game { sokoban = ng
                                , animationInfo = [ai {aiLastUpdated = now, aiAliveTicks = newAlive}]
+                               , currentMap = ni
                                })
   frame game =
     let b = ((sokoban game) ^. board)
@@ -140,5 +146,7 @@ renderOrder (Location x1 y1) (Location x2 y2) = case compare y1 y2 of
                                                   EQ -> compare x1 x2
                                                   a  -> a
 
-inHouseSokoban :: InHouseSokoban
-inHouseSokoban = InHouseSokoban (Sokoban 0 $ loadBoard exampleBoard) [AnimationInfo "char_idle_right" True 0 0]
+inHouseSokoban :: IO InHouseSokoban
+inHouseSokoban = do
+  m <- fmap (map (intercalate "\n") . split [] . lines) $ readFile "maps/classic.txt"
+  return $ InHouseSokoban (Sokoban 0 (loadBoard (head m))) [AnimationInfo "char_idle_right" True 0 0] m 0
