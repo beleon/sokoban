@@ -54,3 +54,10 @@ split s l  =
   in case b of
        []     -> [a]
        (x:xs) -> a:split s xs
+
+groupOn :: Eq b => (a -> b) -> [a] -> [[a]]
+groupOn _ [] = []
+groupOn _ [x] = [[x]]
+groupOn f (x1:x2:xs) = if f x1 == f x2
+                       then let (r:rs) = groupOn f (x2:xs) in (x1:r):rs
+                       else [x1]:groupOn f (x2:xs)

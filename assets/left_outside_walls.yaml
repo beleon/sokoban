@@ -1,0 +1,5 @@
+texture: "dungeon_tileset"
+name: "left_outside_walls"
+size: [16, 16]
+instances:
+  - [48,  80]

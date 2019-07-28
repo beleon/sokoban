@@ -1,0 +1,5 @@
+texture: "dungeon_tileset"
+name: "center_walls"
+size: [16, 16]
+instances:
+  - [80,  96]
