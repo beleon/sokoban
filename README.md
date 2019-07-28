@@ -24,7 +24,6 @@ reference that helped me make sense of the SDL2 Haskell bindings.
 
 # Not supported (yet)
 
-- Restarting a level
 - Level selection
 - Undo move
 - Move counter
@@ -49,8 +48,8 @@ to first build and then run Sokoban.
 
 # How to play
 
-Use arrow keys to move. Map will automatically change after successfully
-finishing a level.
+Use arrow keys to move. Press `r` to restart a level. Map will automatically
+change after successfully finishing a level.
 
 # Rules
 

@@ -42,6 +42,15 @@ data Placements = Placements
   , pRightOutsideWalls :: [Location]
   }
 
+data LogicalEvents = LogicalEvents
+  { resetLevel :: Bool
+  }
+
+getLogicalEvents :: [SDL.KeyboardEventData] -> LogicalEvents
+getLogicalEvents e =
+  LogicalEvents $ any (\x -> SDL.keyboardEventKeyMotion x == SDL.Pressed && SDL.keysymKeycode (SDL.keyboardEventKeysym x) == SDL.KeycodeR) e
+  
+
 nextDir :: [SDL.EventPayload] -> Maybe Direction
 nextDir [] = Nothing
 nextDir (x:xs) = case x of
@@ -66,7 +75,10 @@ instance Game InHouseSokoban where
         moveResult = fmap (advance (sokoban game)) nd
         w  = maybe False (^. won) moveResult
         ni = if w then currentMap game + 1 else currentMap game
-        ng = if w then Sokoban 0 (loadBoard (maps game!!ni)) else maybe (sokoban game) (^. sokoban') moveResult
+        ng = case undefined of 
+               _ | resetLevel le || w -> Sokoban 0 (loadBoard (maps game!!ni))
+                 | True -> maybe (sokoban game) (^. sokoban') moveResult
+        le = getLogicalEvents keyevents
     now <- fmap fromIntegral SDL.ticks
     let newAlive = aiAliveTicks ai + now - aiLastUpdated ai
     return $ Update quit (game { sokoban = ng
