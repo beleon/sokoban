@@ -48,8 +48,8 @@ to first build and then run Sokoban.
 
 # How to play
 
-Use arrow keys to move. Press `r` to restart a level. Map will automatically
-change after successfully finishing a level.
+Use arrow keys or vim style keybindings to move. Press `r` to restart a level.
+Map will automatically change after successfully finishing a level.
 
 # Rules
 

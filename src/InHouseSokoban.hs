@@ -60,6 +60,10 @@ nextDir (x:xs) = case x of
                                                  SDL.KeycodeDown  -> Just North
                                                  SDL.KeycodeLeft  -> Just West
                                                  SDL.KeycodeRight -> Just East
+                                                 SDL.KeycodeK     -> Just South
+                                                 SDL.KeycodeJ     -> Just North
+                                                 SDL.KeycodeH     -> Just West
+                                                 SDL.KeycodeL     -> Just East
                                                  _                -> r
                                           else r
                  _ -> r
@@ -75,7 +79,7 @@ instance Game InHouseSokoban where
         moveResult = fmap (advance (sokoban game)) nd
         w  = maybe False (^. won) moveResult
         ni = if w then currentMap game + 1 else currentMap game
-        ng = case undefined of 
+        ng = case undefined of
                _ | resetLevel le || w -> Sokoban 0 (loadBoard (maps game!!ni))
                  | True -> maybe (sokoban game) (^. sokoban') moveResult
         le = getLogicalEvents keyevents
