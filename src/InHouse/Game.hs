@@ -11,5 +11,5 @@ data Update a = Update
 
 class Game a where
   titleText :: a -> String
-  update :: a -> [SDL.EventPayload] -> IO (Update a)
+  update :: a -> [SDL.Event] -> IO (Update a)
   frame :: a -> Frame

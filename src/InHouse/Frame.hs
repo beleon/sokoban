@@ -10,7 +10,18 @@ import           Data.Either
 import           Data.Maybe                     ( fromMaybe )
 import           Control.Arrow                  ( second )
 
-data Frame = Frame [[SpriteInstance]]
+data LayerMode = LayerMode
+  { lmCenterH :: Bool
+  , lmCenterV :: Bool
+  , lmScaleUp :: Bool
+  }
+
+data Layer = Layer
+  { lSprites :: [SpriteInstance]
+  , lMode    :: LayerMode
+  }
+
+data Frame = Frame [Layer]
 
 data SpriteInstance =
     StillInstance
@@ -25,8 +36,9 @@ data SpriteInstance =
       }
 
 drawFrame :: (MonadIO m) => SDL.Renderer -> Resources -> Frame -> m ()
-drawFrame renderer resources (Frame layers) =
-  mapM_ (mapM_ (drawSpriteInstance renderer resources)) layers
+drawFrame renderer resources (Frame layers) = mapM_
+  (mapM_ (drawSpriteInstance renderer resources) . (\(Layer x _) -> x))
+  layers
 
 drawSpriteInstance
   :: (MonadIO m) => SDL.Renderer -> Resources -> SpriteInstance -> m ()

@@ -62,7 +62,7 @@ mainLoop = do
   startTicks          <- SDL.ticks
 
   -- get events
-  events              <- map SDL.eventPayload <$> SDL.pollEvents
+  events              <- SDL.pollEvents
 
   -- update
   game                <- get

@@ -4,6 +4,7 @@ import           InHouse.Game
 import           InHouse.Frame
 import           InHouse.Resources
 import           InHouse.Util
+import           InHouse.Menu
 import           Sokoban
 import qualified SDL
 import           Data.Maybe
@@ -18,11 +19,14 @@ import           Data.List                      ( sortBy
                                                 , sortOn
                                                 )
 
+data Mode = MenuMode | PlayingMode deriving Eq
+
 data InHouseSokoban = InHouseSokoban
   { sokoban :: Sokoban
   , animationInfo :: [AnimationInfo]
   , maps :: [String]
   , currentMap :: Int
+  , mode :: Mode
   }
 
 data Placements = Placements
@@ -82,43 +86,7 @@ nextDir (x : xs) = case x of
 
 instance Game InHouseSokoban where
   titleText _ = "Sokoban"
-  update game events = do
-    let quit =
-          any
-              (\x ->
-                SDL.keyboardEventKeyMotion x
-                  == SDL.Pressed
-                  && SDL.keysymKeycode (SDL.keyboardEventKeysym x)
-                  == SDL.KeycodeQ
-              )
-              keyevents
-            ||     SDL.QuitEvent
-            `elem` events
-        keyevents = mapMaybe
-          (\x -> case x of
-            (SDL.KeyboardEvent a) -> Just a
-            _                     -> Nothing
-          )
-          events
-        [ai]       = animationInfo game
-        nd         = nextDir events
-        moveResult = fmap (advance (sokoban game)) nd
-        w          = maybe False (^. won) moveResult
-        ni         = if w then currentMap game + 1 else currentMap game
-        ng         = case undefined of
-          _ | resetLevel le || w -> Sokoban 0 (loadBoard (maps game !! ni))
-            | True -> maybe (sokoban game) (^. sokoban') moveResult
-        le = getLogicalEvents keyevents
-    now <- fmap fromIntegral SDL.ticks
-    let newAlive = aiAliveTicks ai + now - aiLastUpdated ai
-    return $ Update
-      quit
-      (game
-        { sokoban       = ng
-        , animationInfo = [ai { aiLastUpdated = now, aiAliveTicks = newAlive }]
-        , currentMap    = ni
-        }
-      )
+  update = update'
   frame game =
     let
       b      = ((sokoban game) ^. board)
@@ -314,27 +282,27 @@ instance Game InHouseSokoban where
         ]
       layers' =
         map (map snd . sortBy (\a b -> renderOrder (fst a) (fst b))) layers
-      --in Frame [(map (\(a,b,c) -> StillInstance a b c)
-      --[ ("top_left_walls", Rect 72 136 64 64, 0)
-      --, ("top_walls", Rect 136 136 64 64, 0)
-      --, ("top_walls", Rect 200 136 64 64, 0)
-      --, ("top_walls", Rect 264 136 64 64, 0)
-      --, ("top_right_walls", Rect 328 136 64 64, 0)
-      --, ("left_walls", Rect 72 200 64 64, 0)
-      --, ("floor_tiles", Rect 136 200 64 64, 0)
-      --, ("floor_tiles", Rect 264 200 64 64, 0)
-      --, ("right_walls", Rect 328 200 64 64, 0)
-      --, ("boxes", Rect 200 200 64 64, 0)
-      --, ("boxes", Rect 200 264 64 64, 0)
-      --, ("bottom_left_walls", Rect 72 264 64 64, 0)
-      --, ("bottom_right_walls", Rect 328 264 64 64, 0)
-      --, ("bottom_walls", Rect 136 264 64 64, 0)
-      --, ("bottom_walls", Rect 264 264 64 64, 0)
-      --]) ++
-      --[ AnimationInstance "char_attack_right" (Rect 136 186 64 84) (aiAliveTicks ((animationInfo game)!!0))
-      --, AnimationInstance "char_idle_right" (Rect 172 186 64 64) (aiAliveTicks ((animationInfo game)!!0))]]
+          --in Frame [(map (\(a,b,c) -> StillInstance a b c)
+          --[ ("top_left_walls", Rect 72 136 64 64, 0)
+          --, ("top_walls", Rect 136 136 64 64, 0)
+          --, ("top_walls", Rect 200 136 64 64, 0)
+          --, ("top_walls", Rect 264 136 64 64, 0)
+          --, ("top_right_walls", Rect 328 136 64 64, 0)
+          --, ("left_walls", Rect 72 200 64 64, 0)
+          --, ("floor_tiles", Rect 136 200 64 64, 0)
+          --, ("floor_tiles", Rect 264 200 64 64, 0)
+          --, ("right_walls", Rect 328 200 64 64, 0)
+          --, ("boxes", Rect 200 200 64 64, 0)
+          --, ("boxes", Rect 200 264 64 64, 0)
+          --, ("bottom_left_walls", Rect 72 264 64 64, 0)
+          --, ("bottom_right_walls", Rect 328 264 64 64, 0)
+          --, ("bottom_walls", Rect 136 264 64 64, 0)
+          --, ("bottom_walls", Rect 264 264 64 64, 0)
+          --]) ++
+          --[ AnimationInstance "char_attack_right" (Rect 136 186 64 84) (aiAliveTicks ((animationInfo game)!!0))
+          --, AnimationInstance "char_idle_right" (Rect 172 186 64 64) (aiAliveTicks ((animationInfo game)!!0))]]
     in
-      Frame layers'
+      Frame $ map (flip Layer $ LayerMode False False False) layers'
 
 scale = 4
 
@@ -437,6 +405,50 @@ getPlacements b =
                low--pLeftOutisdeWalls :: [Location]
                row--pRightOutsideWalls :: [Location]
 
+update' game = case mode game of
+  MenuMode    -> updateMenuMode game
+  PlayingMode -> updatePlayingMode game
+
+updatePlayingMode = updateMenuMode
+updateMenuMode game events' = do
+  let events = map SDL.eventPayload events'
+      quit =
+        any
+            (\x ->
+              SDL.keyboardEventKeyMotion x
+                == SDL.Pressed
+                && SDL.keysymKeycode (SDL.keyboardEventKeysym x)
+                == SDL.KeycodeQ
+            )
+            keyevents
+          ||     SDL.QuitEvent
+          `elem` events
+      keyevents = mapMaybe
+        (\x -> case x of
+          (SDL.KeyboardEvent a) -> Just a
+          _                     -> Nothing
+        )
+        events
+      [ai]       = animationInfo game
+      nd         = nextDir events
+      moveResult = fmap (advance (sokoban game)) nd
+      w          = maybe False (^. won) moveResult
+      ni         = if w then currentMap game + 1 else currentMap game
+      ng         = case undefined of
+        _ | resetLevel le || w -> Sokoban 0 (loadBoard (maps game !! ni))
+          | True               -> maybe (sokoban game) (^. sokoban') moveResult
+      le = getLogicalEvents keyevents
+  now <- fmap fromIntegral SDL.ticks
+  let newAlive = aiAliveTicks ai + now - aiLastUpdated ai
+  return $ Update
+    quit
+    (game
+      { sokoban       = ng
+      , animationInfo = [ai { aiLastUpdated = now, aiAliveTicks = newAlive }]
+      , currentMap    = ni
+      }
+    )
+
 renderOrder :: Location -> Location -> Ordering
 renderOrder (Location x1 y1) (Location x2 y2) = case compare y1 y2 of
   EQ -> compare x1 x2
@@ -450,3 +462,4 @@ inHouseSokoban = do
                           [AnimationInfo "char_idle_right" True 0 0]
                           m
                           0
+                          MenuMode
