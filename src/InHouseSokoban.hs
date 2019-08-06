@@ -27,15 +27,13 @@ data InHouseSokoban = InHouseSokoban
   , maps :: [String]
   , currentMap :: Int
   , mode :: Mode
+  , staticPlacements :: StaticPlacements
   }
 
-data Placements = Placements
+data StaticPlacements = StaticPlacements
   { pTargets :: [Location]
-  , pBoxes   :: [Location]
-  , pBoxesOnTarget   :: [Location]
   , pFloorTiles  :: [Location]
   , pDarkFloorTiles  :: [Location]
-  , pPlayer  :: Location
   , pLeftWalls :: [Location]
   , pRightWalls :: [Location]
   , pBottomWalls :: [Location]
@@ -47,6 +45,12 @@ data Placements = Placements
   , pCenterWalls :: [Location]
   , pLeftOutsideWalls :: [Location]
   , pRightOutsideWalls :: [Location]
+  }
+
+data DynamicPlacements = DynamicPlacements
+  { pBoxes   :: [Location]
+  , pBoxesOnTarget   :: [Location]
+  , pPlayer  :: Location
   }
 
 data LogicalEvents = LogicalEvents
@@ -90,7 +94,8 @@ instance Game InHouseSokoban where
   frame game =
     let
       b      = ((sokoban game) ^. board)
-      p      = getPlacements b
+      sp     = staticPlacements game
+      dp     = getDynamicPlacements b
       dir    = (b ^. player) ^. direction
       dirStr = case dir of
         North -> "down"
@@ -106,7 +111,7 @@ instance Game InHouseSokoban where
                               0
               )
             )
-          $ pFloorTiles p
+          $ pFloorTiles sp
         , map
             (\l@(Location x y) ->
               ( l
@@ -115,7 +120,7 @@ instance Game InHouseSokoban where
                               0
               )
             )
-          $ pDarkFloorTiles p
+          $ pDarkFloorTiles sp
         , map
             (\l@(Location x y) ->
               ( l
@@ -124,7 +129,7 @@ instance Game InHouseSokoban where
                               0
               )
             )
-          $ pTargets p
+          $ pTargets sp
         , ( map
               (\l@(Location x y) ->
                 ( l
@@ -134,7 +139,7 @@ instance Game InHouseSokoban where
                   0
                 )
               )
-          $ pBoxes p
+          $ pBoxes dp
           )
           ++ ( map
                  (\l@(Location x y) ->
@@ -145,7 +150,7 @@ instance Game InHouseSokoban where
                      0
                    )
                  )
-             $ pBoxesOnTarget p
+             $ pBoxesOnTarget dp
              )
           ++ ( map
                  (\l@(Location x y) ->
@@ -156,7 +161,7 @@ instance Game InHouseSokoban where
                      (aiAliveTicks ((animationInfo game) !! 0))
                    )
                  )
-             $ [pPlayer p]
+             $ [pPlayer dp]
              )
           ++ ( map
                  (\l@(Location x y) ->
@@ -167,7 +172,7 @@ instance Game InHouseSokoban where
                      0
                    )
                  )
-             $ pLeftWalls p
+             $ pLeftWalls sp
              )
           ++ ( map
                  (\l@(Location x y) ->
@@ -178,7 +183,7 @@ instance Game InHouseSokoban where
                      0
                    )
                  )
-             $ pRightWalls p
+             $ pRightWalls sp
              )
           ++ ( map
                  (\l@(Location x y) ->
@@ -189,7 +194,7 @@ instance Game InHouseSokoban where
                      0
                    )
                  )
-             $ pBottomWalls p
+             $ pBottomWalls sp
              )
           ++ ( map
                  (\l@(Location x y) ->
@@ -200,7 +205,7 @@ instance Game InHouseSokoban where
                      0
                    )
                  )
-             $ pTopWalls p
+             $ pTopWalls sp
              )
           ++ ( map
                  (\l@(Location x y) ->
@@ -211,7 +216,7 @@ instance Game InHouseSokoban where
                      0
                    )
                  )
-             $ pBottomLeftWalls p
+             $ pBottomLeftWalls sp
              )
           ++ ( map
                  (\l@(Location x y) ->
@@ -222,7 +227,7 @@ instance Game InHouseSokoban where
                      0
                    )
                  )
-             $ pBottomRightWalls p
+             $ pBottomRightWalls sp
              )
           ++ ( map
                  (\l@(Location x y) ->
@@ -233,7 +238,7 @@ instance Game InHouseSokoban where
                      0
                    )
                  )
-             $ pTopLeftWalls p
+             $ pTopLeftWalls sp
              )
           ++ ( map
                  (\l@(Location x y) ->
@@ -244,7 +249,7 @@ instance Game InHouseSokoban where
                      0
                    )
                  )
-             $ pTopRightWalls p
+             $ pTopRightWalls sp
              )
           ++ ( map
                  (\l@(Location x y) ->
@@ -255,7 +260,7 @@ instance Game InHouseSokoban where
                      0
                    )
                  )
-             $ pCenterWalls p
+             $ pCenterWalls sp
              )
           ++ ( map
                  (\l@(Location x y) ->
@@ -266,7 +271,7 @@ instance Game InHouseSokoban where
                      0
                    )
                  )
-             $ pLeftOutsideWalls p
+             $ pLeftOutsideWalls sp
              )
           ++ ( map
                  (\l@(Location x y) ->
@@ -277,7 +282,7 @@ instance Game InHouseSokoban where
                      0
                    )
                  )
-             $ pRightOutsideWalls p
+             $ pRightOutsideWalls sp
              )
         ]
       layers' =
@@ -355,13 +360,11 @@ idWalls walls =
         $ groupOn snd
         $ sortOn snd m
 
-getPlacements :: Board -> Placements
-getPlacements b =
+getStaticPlacements :: Board -> StaticPlacements
+getStaticPlacements b =
   let
     t = b ^. targets
     o = b ^. obstacles
-    p = (b ^. player) ^. location
-    e = []
     (walls, boxes) =
       foldl
           (\(w, b) (l, e) -> case e of
@@ -387,23 +390,43 @@ getPlacements b =
       [ Location x y | x <- [0 .. xm], y <- [0 .. ym], outside' $ Location x y ]
     (lw, rw, tw, bw, tlw, trw, blw, brw, cw, low, row) = idWalls walls
   in
-    Placements t--pTargets :: [Location]
-               boxesOffT--pBoxes   :: [Location]
-               boxesOnT--pBoxesOnTarget   :: [Location]
-               floor--pFloorTiles  :: [Location]
-               darkFloor--pFloorTiles  :: [Location]
-               p--pPlayer  :: Location
-               lw--pLeftWalls :: [Location]
-               rw--pRightWalls :: [Location]
-               bw--pBottomWalls :: [Location]
-               tw--pTopWalls :: [Location]
-               blw--pBottomLeftWalls :: [Location]
-               brw--pBottomRightWalls :: [Location]
-               tlw--pTopLeftWalls :: [Location]
-               trw--pTopRightWalls :: [Location]
-               cw--pCenterWalls :: [Location]
-               low--pLeftOutisdeWalls :: [Location]
-               row--pRightOutsideWalls :: [Location]
+    StaticPlacements t--pTargets :: [Location]
+                     floor--pFloorTiles  :: [Location]
+                     darkFloor--pFloorTiles  :: [Location]
+                     lw--pLeftWalls :: [Location]
+                     rw--pRightWalls :: [Location]
+                     bw--pBottomWalls :: [Location]
+                     tw--pTopWalls :: [Location]
+                     blw--pBottomLeftWalls :: [Location]
+                     brw--pBottomRightWalls :: [Location]
+                     tlw--pTopLeftWalls :: [Location]
+                     trw--pTopRightWalls :: [Location]
+                     cw--pCenterWalls :: [Location]
+                     low--pLeftOutisdeWalls :: [Location]
+                     row--pRightOutsideWalls :: [Location]
+
+getDynamicPlacements :: Board -> DynamicPlacements
+getDynamicPlacements b =
+  let
+    t = b ^. targets
+    o = b ^. obstacles
+    p = (b ^. player) ^. location
+    (walls, boxes) =
+      foldl
+          (\(w, b) (l, e) -> case e of
+            Wall -> (l : w, b)
+            Box  -> (w, l : b)
+          )
+          ([], [])
+        $ M.toList o
+    (boxesOnT, boxesOffT) = foldl
+      (\(onT, offT) l -> if elem l t then (l : onT, offT) else (onT, l : offT))
+      ([], [])
+      boxes
+  in
+    DynamicPlacements boxesOffT--pBoxes   :: [Location]
+                      boxesOnT--pBoxesOnTarget   :: [Location]
+                      p--pPlayer  :: Location
 
 update' game = case mode game of
   MenuMode    -> updateMenuMode game
@@ -438,14 +461,16 @@ updateMenuMode game events' = do
         _ | resetLevel le || w -> Sokoban 0 (loadBoard (maps game !! ni))
           | True               -> maybe (sokoban game) (^. sokoban') moveResult
       le = getLogicalEvents keyevents
+      sp' = if w then getStaticPlacements (ng ^. board) else staticPlacements game
   now <- fmap fromIntegral SDL.ticks
   let newAlive = aiAliveTicks ai + now - aiLastUpdated ai
   return $ Update
     quit
     (game
-      { sokoban       = ng
-      , animationInfo = [ai { aiLastUpdated = now, aiAliveTicks = newAlive }]
-      , currentMap    = ni
+      { sokoban          = ng
+      , animationInfo    = [ai { aiLastUpdated = now, aiAliveTicks = newAlive }]
+      , currentMap       = ni
+      , staticPlacements = sp'
       }
     )
 
@@ -458,8 +483,10 @@ inHouseSokoban :: IO InHouseSokoban
 inHouseSokoban = do
   m <- fmap (map (intercalate "\n") . split [] . lines)
     $ readFile "maps/classic.txt"
-  return $ InHouseSokoban (Sokoban 0 (loadBoard (head m)))
+  let b = loadBoard (head m)
+  return $ InHouseSokoban (Sokoban 0 b)
                           [AnimationInfo "char_idle_right" True 0 0]
                           m
                           0
                           MenuMode
+                          (getStaticPlacements b)
